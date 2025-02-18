@@ -2,4 +2,5 @@
 <resources>
 
     <style name="Theme.Perplexity" parent="android:Theme.Material.Light.NoActionBar" />
+    <color name="backgroundColor">#fff</color>
 </resources>

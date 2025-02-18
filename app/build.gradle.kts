@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.material3)
 
     implementation(libs.haze)
+    implementation(libs.haze.materials)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
