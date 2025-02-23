@@ -2,22 +2,23 @@ package com.example.perplexity
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,13 +31,11 @@ import dev.chrisbanes.haze.hazeSource
 
 @Composable
 fun PerplexityLogo(
+    hazeStateLeft: HazeState,
+    hazeStateRight: HazeState,
     sliderValue: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
-
-
-    val hazeState = remember { HazeState() }
-
     val containerColor = MaterialTheme.colorScheme.surface
     val lightAlpha = 0.3f
     val darkAlpha = 0.1f
@@ -47,8 +46,8 @@ fun PerplexityLogo(
                 containerColor.copy(alpha = if (containerColor.luminance() >= 0.5) lightAlpha else darkAlpha),
             )
         ),
-        blurRadius = 1.dp,
-        noiseFactor = 0.1f,
+        blurRadius = 5.dp,
+        noiseFactor = 0.3f,
         fallbackTint = HazeTint.Unspecified,
     )
 
@@ -62,105 +61,145 @@ fun PerplexityLogo(
 //        )
 //    )
     val animationProgress = sliderValue
-    Box(
-        contentAlignment = Alignment.Center,
-    ) {
-        val size = 3
-        MutableList(size) { index ->
-            val rotationAngle = (animationProgress * 360 + (index * 360 / size)) % 360
-            //val rotationAngle = (0.5f * 360 + (index * 360 / size)) % 360
-            val zIndex =
-                (if (rotationAngle <= 90) 90 - rotationAngle else rotationAngle - 90).let {
-                    if (it > 180) 360 - it else it
+    Box(modifier = modifier) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            val pages = 8
+            MutableList(pages) { index ->
+                val rotationAngle = (animationProgress * 360 + (index * 360 / pages)) % 360
+                if (rotationAngle > 0f && rotationAngle < 180f) {
+                    RoundedBoxLeft(
+                        rotationAngle - 90f,
+                        hazeStateLeft,
+                        hazeStyle,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.5f)
+                            .align(Alignment.CenterStart)
+                            .zIndex(rotationAngle)
+                            .hazeSource(hazeStateLeft, rotationAngle + 1f)
+                    )
+                } else {
+                    RoundedBoxRight(
+                        rotationAngle + 90f,
+                        hazeStateRight,
+                        hazeStyle,
+                        modifier = Modifier
+                            //.background(Color.Yellow)
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.5f)
+                            .align(Alignment.CenterEnd)
+                            .zIndex(180 - rotationAngle)
+                            .hazeSource(hazeStateRight, 360 - rotationAngle + 1f)
+                    )
                 }
-            RoundedBox(
-                size,
-                zIndex,
-                rotationAngle,
-                hazeState,
-                hazeStyle,
-                modifier
-                    .zIndex(zIndex)
-                    .hazeSource(hazeState, zIndex)
-            )
-        }
-        Box(
-            modifier = Modifier
-//                .background(Color.Yellow)
-                .size(300.dp)
-                .hazeSource(hazeState, zIndex = 0f)
-                .graphicsLayer {
-                    rotationZ = 360 * animationProgress
-                }
-                .paint(
-                    painter = painterResource(id = R.drawable.bg),
-                )
+            }
 
-        )
+        }
     }
 }
 
 @Composable
-fun RoundedBox(
-    size: Int,
-    zIndex: Float,
+fun RoundedBoxRight(
     rotationAngle: Float,
     hazeState: HazeState,
     hazeStyle: HazeStyle,
     modifier: Modifier
 ) {
-    val listColors = listOf(Color.Yellow, Color.Red, Color.Blue, Color.Green)
-    val tileSize = with(LocalDensity.current) {
-        50.dp.toPx()
-    }
-    val boxWidth = 200.dp
-    val boxHeight = 200.dp
+    Page(
+        rotationAngle,
+        hazeState = hazeState,
+        hazeStyle = hazeStyle,
+        borderColor = Color(0xFF24F4FE),
+        modifier = modifier
+            //.size(size)
+            .graphicsLayer {
+                rotationY = rotationAngle
+                rotationX = -45f
 
-    Box(modifier = modifier.size(width = boxWidth, height = boxHeight)) {
-        Box(
-            modifier = Modifier
-                .size(width = boxWidth / 2, height = boxHeight)
-                .offset(x = boxWidth / 2)
-                .graphicsLayer {
-                    rotationY = rotationAngle
-                    rotationX = -45f
-
-                    cameraDistance = 100f
-                    transformOrigin = TransformOrigin(
-                        pivotFractionX = 0.0f,
-                        pivotFractionY = 0.0f,
-                    )
-                }
-                .hazeEffect(hazeState, style = hazeStyle)
-                .border(
-                    8.dp,
-                    Color(0xFF24F4FE)
+                cameraDistance = 100f
+                transformOrigin = TransformOrigin(
+                    pivotFractionX = 0f,
+                    pivotFractionY = 0.0f,
                 )
-//                .background(
-//                    Brush.horizontalGradient(
-//                        listColors,
-//                        endX = tileSize,
-//                        tileMode = TileMode.Repeated
-//                    )
-//                )
+            }
+    )
+}
 
-        ) {
-            Text("$zIndex", color = Color.White)
-        }
+@Composable
+fun RoundedBoxLeft(
+    rotationAngle: Float,
+    hazeState: HazeState,
+    hazeStyle: HazeStyle,
+    modifier: Modifier
+) {
+
+    Page(
+        rotationAngle,
+        hazeState = hazeState,
+        hazeStyle = hazeStyle,
+        borderColor = Color(0xFF24F4FE),
+        modifier = modifier
+            //.size(size)
+            .graphicsLayer {
+                rotationY = rotationAngle
+                rotationX = -45f
+
+                cameraDistance = 100f
+                transformOrigin = TransformOrigin(
+                    pivotFractionX = 1f,
+                    pivotFractionY = 0.0f,
+                )
+            }
+    )
+}
+
+@Composable
+fun Page(
+    rotationAngle: Float,
+    hazeState: HazeState,
+    hazeStyle: HazeStyle,
+    borderColor: Color,
+    modifier: Modifier
+) {
+    Box(
+        modifier = modifier
+            .hazeEffect(hazeState, style = hazeStyle)
+            .border(8.dp, borderColor)
+    ) {
     }
+
 }
 
 
 @Preview(showBackground = true, backgroundColor = 0xFF000023)
 @Composable
 fun PerplexityLogoPreview() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        PerplexityLogo(0.0f)
-        //RotatingBoxes()
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val hazeStateLeft = remember { HazeState() }
+        val hazeStateRight = remember { HazeState() }
+
+        //background
+        Box(
+            modifier = Modifier
+                .hazeSource(hazeStateRight, zIndex = 0f)
+                .hazeSource(hazeStateLeft, zIndex = 0f)
+                .clip(CircleShape)
+                .paint(
+                    painter = painterResource(id = R.drawable.bg),
+                    contentScale = ContentScale.Crop
+                )
+
+        )
+        PerplexityLogo(
+            hazeStateLeft, hazeStateRight,
+            0.0f, modifier = Modifier.size(200.dp))
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Preview(showBackground = true, backgroundColor = 0xFF000023)
 @Composable
 fun PreviewRoundedBox() {
 
@@ -180,5 +219,7 @@ fun PreviewRoundedBox() {
     )
 
     val hazeState = remember { HazeState() }
-    RoundedBox(8, 0f, 0.5f, hazeState, hazeStyle, modifier = Modifier)
+    RoundedBoxRight(
+        0.5f, hazeState, hazeStyle, modifier = Modifier
+    )
 }

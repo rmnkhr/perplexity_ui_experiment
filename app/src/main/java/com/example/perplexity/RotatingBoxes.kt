@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.zIndex
-import com.example.perplexity.RoundedBox
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import kotlin.math.abs

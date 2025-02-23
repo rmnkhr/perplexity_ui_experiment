@@ -36,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -45,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
 @OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
@@ -105,10 +109,33 @@ fun PerplexityScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Slider(sliderState.value, onValueChange = { sliderState.value = it })
-            PerplexityLogo(
-                sliderState.value,
-                modifier = Modifier.size(200.dp)
-            )
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                val hazeStateLeft = remember { HazeState() }
+                val hazeStateRight = remember { HazeState() }
+                Box(
+                    modifier = Modifier
+                        .size(300.dp)
+                        .hazeSource(hazeStateRight, zIndex = 0f)
+                        .hazeSource(hazeStateLeft, zIndex = 0f)
+                        .graphicsLayer {
+                            rotationZ = sliderState.value * 1440f
+                        }
+                        .clip(CircleShape)
+                        .paint(
+                            painter = painterResource(id = R.drawable.user_avatar),
+                            contentScale = ContentScale.Crop
+                        )
+
+                )
+                PerplexityLogo(
+                    hazeStateLeft,
+                    hazeStateRight,
+                    sliderState.value,
+                    modifier = Modifier.size(200.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
