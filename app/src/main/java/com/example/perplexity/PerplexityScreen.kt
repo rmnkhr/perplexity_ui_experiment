@@ -1,5 +1,10 @@
 package com.example.perplexity
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,14 +30,12 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,27 +53,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 
-@OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PerplexityScreen() {
     val darkBackground = Color(0xFF121212)
     val grayText = Color(0xFF888888)
-
-//    HazeExample(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(darkBackground)
-//    )
-
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(darkBackground)
     ) {
-        // Top bar with title
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,8 +93,16 @@ fun PerplexityScreen() {
             )
         }
 
-        // Center content
-        val sliderState = remember { mutableStateOf(0f) }
+        val infiniteTransition = rememberInfiniteTransition()
+        val animationProgress by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(8_000),
+                repeatMode = RepeatMode.Restart
+            )
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -108,7 +110,6 @@ fun PerplexityScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Slider(sliderState.value, onValueChange = { sliderState.value = it })
             Box(
                 contentAlignment = Alignment.Center
             ) {
@@ -116,15 +117,16 @@ fun PerplexityScreen() {
                 val hazeStateRight = remember { HazeState() }
                 Box(
                     modifier = Modifier
+                        .offset(y = (-30).dp)
                         .size(300.dp)
                         .hazeSource(hazeStateRight, zIndex = 0f)
                         .hazeSource(hazeStateLeft, zIndex = 0f)
                         .graphicsLayer {
-                            rotationZ = sliderState.value * 1440f
+                            rotationZ = animationProgress * 1080
                         }
                         .clip(CircleShape)
                         .paint(
-                            painter = painterResource(id = R.drawable.user_avatar),
+                            painter = painterResource(id = R.drawable.orb_bg),
                             contentScale = ContentScale.Crop
                         )
 
@@ -132,7 +134,6 @@ fun PerplexityScreen() {
                 PerplexityLogo(
                     hazeStateLeft,
                     hazeStateRight,
-                    sliderState.value,
                     modifier = Modifier.size(200.dp)
                 )
             }
@@ -154,6 +155,7 @@ fun PerplexityScreen() {
                 fontSize = 28.sp
             )
         }
+
 
         // Bottom content
         Column(

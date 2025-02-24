@@ -1,5 +1,10 @@
 package com.example.perplexity
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -9,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +39,6 @@ import dev.chrisbanes.haze.hazeSource
 fun PerplexityLogo(
     hazeStateLeft: HazeState,
     hazeStateRight: HazeState,
-    sliderValue: Float,
     modifier: Modifier
 ) {
     val containerColor = MaterialTheme.colorScheme.surface
@@ -46,21 +51,21 @@ fun PerplexityLogo(
                 containerColor.copy(alpha = if (containerColor.luminance() >= 0.5) lightAlpha else darkAlpha),
             )
         ),
-        blurRadius = 5.dp,
+        blurRadius = 10.dp,
         noiseFactor = 0.3f,
         fallbackTint = HazeTint.Unspecified,
     )
 
-//    val infiniteTransition = rememberInfiniteTransition()
-//    val animationProgress by infiniteTransition.animateFloat(
-//        initialValue = 1f,
-//        targetValue = 0f,
-//        animationSpec = infiniteRepeatable(
-//            animation = tween(5_000),
-//            repeatMode = RepeatMode.Restart
-//        )
-//    )
-    val animationProgress = sliderValue
+    val infiniteTransition = rememberInfiniteTransition()
+    val animationProgress by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5_000),
+            repeatMode = RepeatMode.Restart
+        )
+    )
+
     Box(modifier = modifier) {
         Box(modifier = Modifier.fillMaxSize()) {
             val pages = 8
@@ -84,11 +89,10 @@ fun PerplexityLogo(
                         hazeStateRight,
                         hazeStyle,
                         modifier = Modifier
-                            //.background(Color.Yellow)
                             .fillMaxHeight()
                             .fillMaxWidth(0.5f)
                             .align(Alignment.CenterEnd)
-                            .zIndex(180 - rotationAngle)
+                            .zIndex(360 - rotationAngle)
                             .hazeSource(hazeStateRight, 360 - rotationAngle + 1f)
                     )
                 }
@@ -106,12 +110,10 @@ fun RoundedBoxRight(
     modifier: Modifier
 ) {
     Page(
-        rotationAngle,
         hazeState = hazeState,
         hazeStyle = hazeStyle,
         borderColor = Color(0xFF24F4FE),
         modifier = modifier
-            //.size(size)
             .graphicsLayer {
                 rotationY = rotationAngle
                 rotationX = -45f
@@ -134,12 +136,10 @@ fun RoundedBoxLeft(
 ) {
 
     Page(
-        rotationAngle,
         hazeState = hazeState,
         hazeStyle = hazeStyle,
         borderColor = Color(0xFF24F4FE),
         modifier = modifier
-            //.size(size)
             .graphicsLayer {
                 rotationY = rotationAngle
                 rotationX = -45f
@@ -155,7 +155,6 @@ fun RoundedBoxLeft(
 
 @Composable
 fun Page(
-    rotationAngle: Float,
     hazeState: HazeState,
     hazeStyle: HazeStyle,
     borderColor: Color,
@@ -165,9 +164,7 @@ fun Page(
         modifier = modifier
             .hazeEffect(hazeState, style = hazeStyle)
             .border(8.dp, borderColor)
-    ) {
-    }
-
+    )
 }
 
 
@@ -188,14 +185,15 @@ fun PerplexityLogoPreview() {
                 .hazeSource(hazeStateLeft, zIndex = 0f)
                 .clip(CircleShape)
                 .paint(
-                    painter = painterResource(id = R.drawable.bg),
+                    painter = painterResource(id = R.drawable.orb_bg),
                     contentScale = ContentScale.Crop
                 )
 
         )
         PerplexityLogo(
             hazeStateLeft, hazeStateRight,
-            0.0f, modifier = Modifier.size(200.dp))
+            modifier = Modifier.size(200.dp)
+        )
     }
 }
 
